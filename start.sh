@@ -1,12 +1,19 @@
-﻿#!/bin/sh
+#!/bin/sh
 
-set -e
+set -eu
 
-: "${SOCKS_USER:?SOCKS_USER is required}"
-: "${SOCKS_PASSWORD:?SOCKS_PASSWORD is required}"
+USER_NAME="${SOCKS_USER:-amir}"
+USER_PASSWORD="${SOCKS_PASSWORD:-change-me}"
 
-adduser -D "$SOCKS_USER"
+if ! id "$USER_NAME" >/dev/null 2>&1; then
+    adduser -D -H -s /sbin/nologin "$USER_NAME"
+fi
 
-echo "$SOCKS_USER:$SOCKS_PASSWORD" | chpasswd
+echo "$USER_NAME:$USER_PASSWORD" | chpasswd
+
+echo "=== Network interfaces ==="
+ip addr || true
+
+echo "=== Starting Dante ==="
 
 exec sockd -f /etc/sockd.conf
